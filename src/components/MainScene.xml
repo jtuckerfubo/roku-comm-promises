@@ -1,0 +1,5 @@
+<component name="MainScene" extends="Scene">
+    <children>
+        <rectangle id="myrect" width="300" height="300" color="#00ff00" translation="[100, 100]"/>
+    </children>
+</component>

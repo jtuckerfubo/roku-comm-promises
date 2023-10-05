@@ -1,0 +1,18 @@
+import "pkg:/source/roku_modules/promises/promises.brs"
+
+sub init()
+    m.top.setFocus(true)
+
+    m.promise = promises.create()
+    promises.onThen(m.promise, function(result) 
+        ? result 
+    end function)
+
+    m.timer = createObject("rosgnode", "timer")
+    m.timer.observeField("fire", (sub()
+        ? "timer fired..."
+        promises.resolve("promise resolved!", m.promise)
+    end sub).tostr().split(" ")[1])
+    m.timer.control = "start"
+
+end sub

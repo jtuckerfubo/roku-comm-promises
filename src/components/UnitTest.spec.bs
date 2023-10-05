@@ -1,0 +1,69 @@
+import "pkg:/source/roku_modules/promises/promises.brs"
+
+namespace tests
+
+  @async
+  @SGNode("TestNode")
+  @suite("The test suite")
+  class UnitTests extends rooibos.BaseTestSuite
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("first group of tests")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @async
+    @it("timer test")
+    function _()
+      m.timer = createObject("rosgnode", "timer")
+      m.timer.observeField("fire", (sub()
+        ? "timer fired."
+        m.testSuite.timer.unobserveField("fire")
+        m.testSuite.assertTrue(true)
+        m.testSuite.done()
+      end sub).tostr().split(" ")[1])
+      m.timer.control = "start"
+    end function
+
+    @async
+    @it("positive promise test")
+    function _()
+      m.promise = promises.create()
+
+      promises.onFinally(promises.onThen(promises.onCatch(m.promise,
+      function(error) : m.testSuite.assertFalse(true, error) : end function),
+      function(result)
+        if result <> invalid then
+          ? "result: " result
+          m.testSuite.assertTrue(true)
+        end if
+      end function), function() : m.testSuite.done() : end function)
+
+      m.timer.observeField("fire", (sub()
+        m.testSuite.timer.unobserveField("fire")
+        promises.resolve("promise was resolved when timer fired", m.testSuite.promise)
+      end sub).tostr().split(" ")[1])
+      m.timer.control = "start"
+    end function
+
+    @async
+    @it("negative promise test")
+    function _()
+      m.promise = promises.create()
+
+      promises.chain(m.promise).then(function(response)
+        m.testSuite.assertFalse(true)
+      end function).catch(function(error)
+        ? "error: " error
+        m.testSuite.assertTrue(true)
+      end function).finally(function()
+        m.testSuite.done()
+      end function)
+
+      m.timer.observeField("fire", (sub()
+        m.testSuite.timer.unobserveField("fire")
+        promises.reject("promise was rejected when timer fired", m.testSuite.promise)
+      end sub).tostr().split(" ")[1])
+      m.timer.control = "start"
+    end function
+  end class
+end namespace
